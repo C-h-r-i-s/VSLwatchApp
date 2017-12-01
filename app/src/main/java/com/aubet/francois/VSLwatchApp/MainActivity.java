@@ -22,7 +22,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private static final BlockingQueue<String> queue = new ArrayBlockingQueue<String>(100);
     static ConnectedFeedback theFeedback;
     static SocketManager sock;
-    static final String ipAddress = "131.159.222.65";
+    static final String ipAddress = "10.180.27.117";
 
     private SensorManager mSensorManager;
     private Sensor mLight;
@@ -63,14 +63,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         btnCoWifi = (Button) findViewById(R.id.button_cowi);
         btnCoWifi.setOnClickListener(this);
 
-        btnCoWeb = (Button) findViewById(R.id.button_coweb);
-        btnCoWeb.setOnClickListener(this);
-
-        btnCoIPSEC = (Button) findViewById(R.id.button_cosec);
-        btnCoIPSEC.setOnClickListener(this);
-
-        ssid = (EditText)findViewById(R.id.editWifiSSID);
-        pass = (EditText)findViewById(R.id.editWifiPass);
 
         theFeedback = new ConnectedFeedback();
         theFeedback.start();
@@ -94,13 +86,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                     sendCommand(Double.toString((State.lightValue)));
                 break;
-            case R.id.button_coweb:
-                    sendCommand("getWEB");
-                break;
-
-            case R.id.button_cosec:
-                    sendCommand("getIPSEC");
-                break;
 
             default:
                 break;
@@ -111,11 +96,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     public static void onReceivedCommand(String com) {
         switch (com) {
-            case "getLightValue":
-                sendCommand(Double.toString((State.lightValue)));
-                break;
             case "WIFIfalse":
                 State.connectedWifi = false;
+                break;
+            case "askLum":
+                sendCommand(Double.toString((State.lightValue)));
                 break;
 
             default:
