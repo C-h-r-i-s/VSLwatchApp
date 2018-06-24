@@ -40,6 +40,16 @@
         tools:layout_editor_absoluteY="0dp"
         tools:layout_editor_absoluteX="8dp" />
 
+        <Button
+            android:id="@+id/button_stop"
+            android:layout_width="368dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="STOP"
+            android:layout_weight="4.5"
+            tools:layout_editor_absoluteY="0dp"
+            tools:layout_editor_absoluteX="8dp" />
+
 
 
     </LinearLayout>

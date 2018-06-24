@@ -55,9 +55,19 @@ public class SocketManager extends Thread {
 
 		} catch (IOException | InterruptedException e ) { //| InterruptedException
 			e.printStackTrace();
-		} finally {
+			appInput.interrupt();
+			appOutput.interrupt();
+            com.aubet.francois.VSLwatchApp.State.connectedPi = false;
+            connected = false;
+            try {
+                socket.close();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+
+        } finally {
 			try {
-				if (socket != null)
+				if (socket != null || !socket.isConnected())
 					socket.close();
 					com.aubet.francois.VSLwatchApp.State.connectedPi = false;
 					connected = false;
@@ -81,7 +91,7 @@ public class SocketManager extends Thread {
 		boolean stopRequested = false;
 		@Override
 		public void run() {
-			while (!stopRequested) {
+			while (!stopRequested ) {
 				try {
 					final String command = queue.take();
 					output.write(command + "\n");
@@ -126,6 +136,7 @@ public class SocketManager extends Thread {
 					stopRequested = true;
 				}
 				if(line != null){		//if a message is received:
+
 					System.out.println("rep:" + line);
 					MainActivity.onReceivedCommand(line);
 				}

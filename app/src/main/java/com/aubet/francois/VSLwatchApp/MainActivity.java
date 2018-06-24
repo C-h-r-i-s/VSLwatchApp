@@ -18,14 +18,19 @@ import java.util.concurrent.BlockingQueue;
 
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener, View.OnClickListener  {
-    Button btnCoPi, btnCoWifi, btnCoWeb, btnCoIPSEC;
+    Button btnCoPi, btnCoWifi, btnCoWeb, btnCoIPSEC, btnStop;
     private static final BlockingQueue<String> queue = new ArrayBlockingQueue<String>(100);
     static ConnectedFeedback theFeedback;
     static SocketManager sock;
-    static final String ipAddress = "10.180.27.117";
-
+    //static final String ipAddress = "10.180.27.117";
+    //static final String ipAddress = "192.168.20.44";
+    static final String ipAddress = "10.0.32.85";
+    //static final String ipAddress = "192.168.178.48";
     private SensorManager mSensorManager;
     private Sensor mLight;
+    private Sensor mAccelerometer;
+    private Sensor mGyroscope;
+    private Sensor mAcceleration;
 
     EditText ssid = null;
     EditText pass = null;
@@ -55,6 +60,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mLight = mSensorManager.getDefaultSensor(Sensor.TYPE_LIGHT);
+        mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);//Used Sensor
+        mGyroscope = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);//Used Sensor
+        mAcceleration = mSensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);//Used Sensor
 
 
         btnCoPi = (Button) findViewById(R.id.button_copi);
@@ -62,6 +70,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         btnCoWifi = (Button) findViewById(R.id.button_cowi);
         btnCoWifi.setOnClickListener(this);
+
+        btnStop = (Button) findViewById(R.id.button_stop);
+        btnStop.setOnClickListener(this);
 
 
         theFeedback = new ConnectedFeedback();
@@ -87,6 +98,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     sendCommand(Double.toString((State.lightValue)));
                 break;
 
+                case R.id.button_stop:
+                    sock.interrupt();
+                    //com.aubet.francois.VSLwatchApp.State.connectedPi = false;
+                    break;
+
+
+
             default:
                 break;
             }
@@ -99,10 +117,26 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             case "WIFIfalse":
                 State.connectedWifi = false;
                 break;
-            case "askLum":
-                sendCommand(Double.toString((State.lightValue)));
+            case "lux":
+                sendCommand("lux="+Double.toString(State.lightValue));
                 break;
 
+
+            case "accelerometer":
+                sendCommand("accelerometer="+Double.toString((State.AcceleroxValue))+ "," + Double.toString((State.AcceleroyValue))+ "," + Double.toString((State.AccelerozValue)));
+                break;
+
+            case "gyroscope":
+                sendCommand("acceleration="+Double.toString((State.GyroxValue))+ "," + Double.toString((State.GyroyValue))+ "," + Double.toString((State.GyrozValue)));
+
+                break;
+            case "accelero":
+            case "acceleration":
+                sendCommand("acceleration="+Double.toString((State.xValue))+ "," + Double.toString((State.yValue))+ "," + Double.toString((State.zValue)));
+                break;
+            case "all":
+                sendCommand("all="+Double.toString((State.AcceleroxValue))+ "," + Double.toString((State.AcceleroyValue))+ "," + Double.toString((State.AccelerozValue))+ "," +Double.toString((State.GyroxValue))+ "," + Double.toString((State.GyroyValue))+ "," + Double.toString((State.GyrozValue))+ "," + Double.toString((State.xValue))+ "," + Double.toString((State.yValue))+ "," + Double.toString((State.zValue))+ "," +Double.toString(State.lightValue));
+                break;
             default:
         }
 
@@ -125,8 +159,50 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public final void onSensorChanged(SensorEvent event) {
-    float lightMeasure = event.values[0];
-    State.lightValue = lightMeasure;
+        switch (event.sensor.getType()) {
+            case Sensor.TYPE_ACCELEROMETER:
+                float accex = event.values[0];
+                float accey = event.values[1];
+                float accez = event.values[2];
+                State.AcceleroxValue = accex;
+                State.AcceleroyValue = accey;
+                State.AccelerozValue = accez;
+
+                break;
+
+            case Sensor.TYPE_GYROSCOPE:
+                float gyrx = event.values[0];
+                float gyry = event.values[1];
+                float gyrz = event.values[2];
+                State.GyroxValue = gyrx;
+                State.GyroyValue = gyry;
+                State.GyrozValue = gyrz;
+
+                break;
+
+            case Sensor.TYPE_LINEAR_ACCELERATION:
+                float accx = event.values[0];
+                float accy = event.values[1];
+                float accz = event.values[2];
+                State.xValue = accx;
+                State.yValue = accy;
+                State.zValue = accz;
+
+                break;
+            case Sensor.TYPE_LIGHT:
+                float lightMeasure = event.values[0];
+                State.lightValue = lightMeasure;
+
+                break;
+
+            default:
+                break;
+        }
+
+
+
+
+
     // Do something with this sensor data.
     }
 
@@ -135,13 +211,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     // Register a listener for the sensor.
     super.onResume();
     mSensorManager.registerListener(this, mLight, SensorManager.SENSOR_DELAY_NORMAL);
+    mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(this, mGyroscope, SensorManager.SENSOR_DELAY_NORMAL);
+        mSensorManager.registerListener(this, mAcceleration, SensorManager.SENSOR_DELAY_NORMAL);
+
     }
 
     @Override
     protected void onPause() {
     // Be sure to unregister the sensor when the activity pauses.
     super.onPause();
-    mSensorManager.unregisterListener(this);
+    //mSensorManager.unregisterListener(this);//Nope soll weiter laufen
     }
 
     	//+++++++++++++++++++++			to show the connection feedbacks			+++++++++++++++++++++++
